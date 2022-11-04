@@ -4,8 +4,11 @@ export default {
   data() {
     return {
       cities: [],
+      routes: [],
       canvas: null,
-      zoom: 0.0,
+      zoom: 1.0,
+      offsetX: 0.0,
+      offsetY: 0.0,
     }
   },
 
@@ -18,10 +21,18 @@ export default {
                 this.cities = data;
                 console.log('loaded ' + this.cities.length + ' cities');
                 this.drawPoints();
+                this.loadRoutes();
             });
+        
     },
     loadRoutes() {
-        // TODO
+        fetch('route.json')
+            .then(response => response.json())
+            .then(data => {
+                this.routes = data;
+                console.log('loaded ' + this.routes.length + ' routes');
+                this.drawLines();
+            });
     },
     drawLine(x1, y1, x2, y2) {
       let ctx = this.canvas;
@@ -32,6 +43,18 @@ export default {
       ctx.lineTo(x2, y2);
       ctx.stroke();
       ctx.closePath();
+    },
+    drawLines() {
+        console.log('drawLines');
+        let ctx = this.canvas;
+
+        // draw routes lines on canvas
+        for (let i = 0; i < this.routes.length; i++) {
+            let route = this.routes[i];
+            let cityDeb = this.findCity(route.Begin);
+            let cityFin = this.findCity(route.End);
+            this.drawLine(cityDeb.x, cityDeb.y, cityFin.x, cityFin.y);
+        }
     },
     drawPoints() {
         console.log('drawPoints');
@@ -45,15 +68,41 @@ export default {
         for (let i = 0; i < this.cities.length; i++) {
             //console.log('drawPoint', this.cities[i]);
             let city = this.cities[i];
-            ctx.fillRect(city.x, city.y, 2, 2);
+            let coordX = (city.x + this.offsetX)*this.zoom;
+            let coordY = (city.y + this.offsetY)*this.zoom;
+            ctx.fillRect(coordX, coordY, 2, 2);
+            ctx.fillText(city.Name, coordX - 17*this.zoom, coordY);
         }
     },
     zoomIn() {
-        // TODO
+        this.zoom += 0.1;
+        this.drawPoints();
     },
     zoomOut() {
-        // TODO
+        if(this.zoom > 0.2){
+            this.zoom -= 0.1;
+            this.drawPoints();
+        } 
     },
+    goLeft() {
+        this.offsetX += 32;
+        this.drawPoints();
+    },
+    goRight() {
+        this.offsetX -= 32;
+        this.drawPoints();
+    },
+    goUp() {
+        this.offsetY += 32;
+        this.drawPoints();
+    },
+    goDown() {
+        this.offsetY -= 32;
+        this.drawPoints();
+    },
+    findCity(code) {
+        return this.cities.filter(city => city.Code == code)[0];
+    }
   },
 
   // lifecycle hooks
@@ -80,7 +129,7 @@ export default {
     </div>
     <div class="button-bar">
         <div class="button" @click="goLeft">Go left</div>
-        <div class="button" @click="loadCities">Load cities</div>
+        <div class="button" @click="loadCities">Load</div>
         <div class="button" @click="goRight">Go right</div>
         
     </div>
