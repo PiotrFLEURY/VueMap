@@ -1,67 +1,93 @@
 <script>
 export default {
-  // reactive state
-  data() {
-    return {
-      cities: [],
-      canvas: null,
-      zoom: 0.0,
-    }
-  },
-
-  // functions that mutate state and trigger updates
-  methods: {
-    loadCities() {
-        fetch('city.json')
-            .then(response => response.json())
-            .then(data => {
-                this.cities = data;
-                console.log('loaded ' + this.cities.length + ' cities');
-                this.drawPoints();
-            });
-    },
-    loadRoutes() {
-        // TODO
-    },
-    drawLine(x1, y1, x2, y2) {
-      let ctx = this.canvas;
-      ctx.beginPath();
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 1;
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      ctx.closePath();
-    },
-    drawPoints() {
-        console.log('drawPoints');
-        let ctx = this.canvas;
-
-        // clear canvas first
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-        ctx.fillStyle = 'black';
-        // draw cities points on canvas
-        for (let i = 0; i < this.cities.length; i++) {
-            //console.log('drawPoint', this.cities[i]);
-            let city = this.cities[i];
-            ctx.fillRect(city.x, city.y, 2, 2);
+    // reactive state
+    data() {
+        return {
+            cities: [],
+            canvas: null,
+            zoom: 1,
+            depY: 0,
+            depX: 0,
         }
     },
-    zoomIn() {
-        // TODO
-    },
-    zoomOut() {
-        // TODO
-    },
-  },
 
-  // lifecycle hooks
-  mounted() {
-      var c = document.getElementById("myCanvas");
-      this.canvas = c.getContext('2d');
-      
-  }
+    // functions that mutate state and trigger updates
+    methods: {
+        loadCities() {
+            fetch('city.json')
+                .then(response => response.json())
+                .then(data => {
+                    this.cities = data;
+                    console.log('loaded ' + this.cities.length + ' cities');
+                    this.drawPoints();
+                });
+        },
+        loadRoutes() {
+            // TODO
+        },
+        drawLine(x1, y1, x2, y2) {
+            let ctx = this.canvas;
+            ctx.beginPath();
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1;
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.closePath();
+        },
+        drawPoints() {
+            console.log('drawPoints');
+            let ctx = this.canvas;
+
+            // clear canvas first
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+            ctx.fillStyle = 'black';
+            // draw cities points on canvas
+            for (let i = 0; i < this.cities.length; i++) {
+                //console.log('drawPoint', this.cities[i]);
+                let city = this.cities[i];
+                ctx.fillRect(city.x * this.zoom+this.depX, city.y * this.zoom + this.depY , 2, 2)
+                ctx.fillText(city.Name, city.x * this.zoom+this.depX, city.y * this.zoom + this.depY)
+            }
+        },
+        // pouvoir faire un zoom in sur la carte
+        zoomIn() {
+            // TODO
+            this.zoom += 0.1;
+            this.drawPoints();
+
+        },
+        //  pouvoir faire un zoom out sur la carte
+        zoomOut() {
+            // TODO
+            this.zoom -= 0.1;
+            this.drawPoints();
+        },
+        goUp() {
+            this.depY += 10
+            this.drawPoints();
+        },
+        goDown() {
+            this.depY -= 10
+            this.drawPoints();
+        },
+        goLeft(){
+            this.depX += 10
+            this.drawPoints();
+        },
+        goRight(){
+            this.depX -= 10
+            this.drawPoints();
+        }
+    },
+
+    // lifecycle hooks
+    mounted() {
+        var c = document.getElementById("myCanvas");
+        this.canvas = c.getContext('2d');
+
+    }
 }
 </script>
 
@@ -71,18 +97,18 @@ export default {
     </div>
     <div class="button-bar">
         <div class="button" @click="zoomIn">Zoom in</div>
-        
+
         <div class="button" @click="zoomOut">Zoom out</div>
     </div>
     <div class="button-bar">
         <div class="button" @click="goUp">Go up</div>
-        
+
     </div>
     <div class="button-bar">
         <div class="button" @click="goLeft">Go left</div>
         <div class="button" @click="loadCities">Load cities</div>
         <div class="button" @click="goRight">Go right</div>
-        
+
     </div>
     <div class="button-bar">
         <div class="button" @click="goDown">Go down</div>
@@ -102,6 +128,7 @@ export default {
     height: 64px;
     cursor: pointer;
 }
+
 .button-bar {
     display: flex;
     flex-direction: row;
@@ -109,6 +136,7 @@ export default {
     align-items: center;
     margin-top: 1rem;
 }
+
 .map {
     display: block;
     margin-left: auto;
@@ -117,7 +145,8 @@ export default {
     height: 360px;
     background-color: #eee;
 }
+
 #myCanvas {
-  border: 1px solid grey;
+    border: 1px solid grey;
 }
 </style>
